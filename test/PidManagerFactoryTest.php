@@ -16,7 +16,7 @@ class PidManagerFactoryTest extends TestCase
         $this->pidManagerFactory = new PidManagerFactory();
     }
 
-    public function testInvoke()
+    public function testFactoryReturnsAPidManager()
     {
         $factory = $this->pidManagerFactory;
         $pidManager = $factory($this->container->reveal());

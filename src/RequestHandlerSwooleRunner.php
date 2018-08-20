@@ -120,6 +120,11 @@ class RequestHandlerSwooleRunner extends RequestHandlerRunner
     private $cacheTypeFile = [];
 
     /**
+     * @var Console
+     */
+    private $console;
+
+    /**
      * @var string
      */
     private $docRoot;
@@ -146,7 +151,7 @@ class RequestHandlerSwooleRunner extends RequestHandlerRunner
     /**
      * A server manager for swoole server
      *
-     * @var Server
+     * @var ServerFactory
      */
     private $server;
 
@@ -178,10 +183,11 @@ class RequestHandlerSwooleRunner extends RequestHandlerRunner
         RequestHandlerInterface $handler,
         callable $serverRequestFactory,
         callable $serverRequestErrorResponseGenerator,
-        Server $server,
+        ServerFactory $server,
         array $config,
         LoggerInterface $logger = null,
-        PidManager $pidManager
+        PidManager $pidManager,
+        $console
     ) {
         $this->handler = $handler;
 
@@ -208,6 +214,7 @@ class RequestHandlerSwooleRunner extends RequestHandlerRunner
 
         $this->logger = $logger ?: new StdoutLogger();
         $this->pidManager = $pidManager;
+        $this->console = $console;
     }
 
     /**
@@ -215,21 +222,15 @@ class RequestHandlerSwooleRunner extends RequestHandlerRunner
      */
     public function run() : void
     {
-        $opts = new Getopt([
-            'd|daemonize'  => 'Daemonize the swoole server process',
-            'n|worker_num|num_worker=i' => 'The number of the worker process.',
-        ]);
-        $args = $opts->getArguments();
-        $action = $args[0] ?? null;
-        switch ($action) {
+        switch ($this->console->getAction()) {
             case 'stop':
                 $this->stopServer();
                 break;
             case 'start':
             default:
                 $this->startServer([
-                    'daemonize' => $opts->getOption('daemonize') ? (bool) $opts->getOption('daemonize') : false,
-                    'worker_num' => $opts->getOption('worker_num') ? (int) $opts->getOption('worker_num') : 1,
+                    'daemonize' => $this->console->getOption('daemonize', false),
+                    'worker_num' => $this->console->getOption('worker_num', 1),
                 ]);
                 break;
         }

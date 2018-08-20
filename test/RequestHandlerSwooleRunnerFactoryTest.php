@@ -16,11 +16,13 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
 use Zend\Expressive\ApplicationPipeline;
 use Zend\Expressive\Response\ServerRequestErrorResponseGenerator;
+use Zend\Expressive\Swoole\Console;
+use Zend\Expressive\Swoole\ConsoleFactory;
 use Zend\Expressive\Swoole\Exception\InvalidConfigException;
 use Zend\Expressive\Swoole\PidManager;
 use Zend\Expressive\Swoole\RequestHandlerSwooleRunner;
 use Zend\Expressive\Swoole\RequestHandlerSwooleRunnerFactory;
-use Zend\Expressive\Swoole\Server;
+use Zend\Expressive\Swoole\ServerFactory;
 use Zend\Expressive\Swoole\StdoutLogger;
 
 class RequestHandlerSwooleRunnerFactoryTest extends TestCase
@@ -34,10 +36,11 @@ class RequestHandlerSwooleRunnerFactoryTest extends TestCase
 
         $this->serverRequestError = $this->prophesize(ServerRequestErrorResponseGenerator::class);
         // used createMock instead of prophesize for issue
-        $this->server = $this->prophesize(Server::class);
+        $this->serverFactory = $this->prophesize(ServerFactory::class);
         $this->pidManager = $this->prophesize(PidManager::class);
 
         $this->logger = $this->prophesize(LoggerInterface::class);
+        $this->console = $this->prophesize(Console::class);
 
         $this->container = $this->prophesize(ContainerInterface::class);
         $this->container
@@ -54,14 +57,17 @@ class RequestHandlerSwooleRunnerFactoryTest extends TestCase
                 return $this->serverRequestError->reveal();
             });
         $this->container
-            ->get(Server::class)
-            ->willReturn($this->server);
+            ->get(ServerFactory::class)
+            ->willReturn($this->serverFactory);
         $this->container
             ->get(PidManager::class)
             ->willReturn($this->pidManager->reveal());
         $this->container
             ->get('config')
             ->willReturn([]);
+        $this->container
+            ->get(Console::class)
+            ->willReturn($this->console->reveal());
     }
 
     public function configureAbsentLoggerService()

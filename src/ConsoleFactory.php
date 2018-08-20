@@ -10,16 +10,17 @@ declare(strict_types=1);
 namespace Zend\Expressive\Swoole;
 
 use Psr\Container\ContainerInterface;
-use function sys_get_temp_dir;
+use Zend\Console\Getopt;
 
-class PidManagerFactory
+class ConsoleFactory
 {
 
-    public function __invoke(ContainerInterface $container) : PidManager
+    public function __invoke(ContainerInterface $container) : Console
     {
-        $config = $container->get('config');
-        $defaultPidFile = sys_get_temp_dir() . '/zend-swoole.pid';
-        $pidFile = $config['zend-expressive-swoole']['swoole-http-server']['options']['pid_file'] ?: $defaultPidFile;
-        return new PidManager($pidFile);
+        $driver = new Getopt([
+            'd|daemonize'  => 'Daemonize the swoole server process',
+            'n|worker_num|num_worker=i' => 'The number of the worker process.',
+        ]);
+        return new Console($driver);
     }
 }
